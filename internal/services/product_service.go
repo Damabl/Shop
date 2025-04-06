@@ -4,6 +4,7 @@ import (
 	"Shop/internal/models"
 	"Shop/internal/repositories"
 	"errors"
+	"gorm.io/gorm"
 )
 
 type ProductService struct {
@@ -15,7 +16,10 @@ func NewProductService(repo *repositories.ProductRepository) *ProductService {
 }
 
 func (s *ProductService) CreateProduct(product models.Product) error {
-	existingProduct, _ := s.Repo.GetProductByName(product.Name)
+	existingProduct, err := s.Repo.GetProductByName(product.Name)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err // вернём ошибку, если это не "not found"
+	}
 	if existingProduct != nil {
 		return errors.New("product already exists")
 	}

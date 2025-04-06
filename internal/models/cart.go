@@ -13,5 +13,6 @@ type CartItem struct {
 type Cart struct {
 	gorm.Model
 	UserID uint       `json:"user_id"`
-	Items  []CartItem `json:"items" gorm:"foreignKey:CartID"` // CartItem связан с Cart по CartID
+	User   User       `gorm:"foreignKey:UserID"` // Добавьте эту связь
+	Items  []CartItem `gorm:"foreignKey:CartID"`
 }

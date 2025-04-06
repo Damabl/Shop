@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"Shop/internal/models"
+	"errors"
 	"gorm.io/gorm"
 )
 
@@ -21,10 +22,18 @@ func (repo *ProductRepository) UpdateProduct(product *models.Product) error {
 func (repo *ProductRepository) DeleteProduct(product *models.Product) error {
 	return repo.Db.Delete(product).Error
 }
-func (repo *ProductRepository) GetProductByName(name string) (*models.Product, error) {
-	product := &models.Product{}
-	err := repo.Db.Where("name = ?", name).First(product).Error
-	return product, err
+func (r *ProductRepository) GetProductByName(name string) (*models.Product, error) {
+	var product models.Product
+	err := r.Db.Where("name = ?", name).First(&product).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Это не ошибка — просто продукта нет
+		return nil, nil
+	}
+	if err != nil {
+		// Другая ошибка, например, с подключением к БД
+		return nil, err
+	}
+	return &product, nil
 }
 func (repo *ProductRepository) GetProductById(id uint) (*models.Product, error) {
 	product := &models.Product{}

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"Shop/internal/auth"
 	"Shop/internal/handlers"
 	"Shop/internal/repositories"
 	"Shop/internal/services"
@@ -15,10 +16,11 @@ func SetupCartRoutes(r *gin.Engine, db *gorm.DB) {
 
 	cartRoutes := r.Group("/cart")
 	{
-		cartRoutes.GET("/:user_id", cartHandler.GetCart)
-		cartRoutes.POST("/:user_id/product/:product_id", cartHandler.AddToCart)
-		cartRoutes.PUT("/:cart_item_id", cartHandler.UpdateCartItem)
-		cartRoutes.DELETE("/:cart_item_id", cartHandler.RemoveFromCart)
-		cartRoutes.DELETE("/:user_id/clear", cartHandler.ClearCart)
+		cartRoutes.Use(auth.AuthMiddleware())
+		cartRoutes.GET("/user/:user_id", cartHandler.GetCart)
+		cartRoutes.POST("/user/:user_id/product/:product_id", cartHandler.AddToCart)
+		cartRoutes.PUT("/item/:cart_item_id", cartHandler.UpdateCartItem)
+		cartRoutes.DELETE("/item/:cart_item_id", cartHandler.RemoveFromCart)
+		cartRoutes.DELETE("/user/:user_id/clear", cartHandler.ClearCart)
 	}
 }

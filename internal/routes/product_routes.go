@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"Shop/internal/auth"
 	"Shop/internal/handlers"
 	"Shop/internal/repositories"
 	"Shop/internal/services"
@@ -14,9 +15,10 @@ func SetupProductRoutes(router *gin.Engine, db *gorm.DB) {
 	handler := handlers.NewProductHandler(service)
 	routes := router.Group("/products")
 	{
-		routes.POST("/product", handler.CreateProduct)
-		routes.PUT("/product/:id", handler.UpdateProduct)
-		routes.DELETE("/product/:id", handler.DeleteProduct)
+		routes.Use(auth.AuthMiddleware())
+		routes.POST("/product", auth.RoleMiddleware("Admin"), handler.CreateProduct)
+		routes.PUT("/product/:id", auth.RoleMiddleware("Admin"), handler.UpdateProduct)
+		routes.DELETE("/product/:id", auth.RoleMiddleware("Admin"), handler.DeleteProduct)
 		routes.GET("/product/:id", handler.GetProductByID)
 		routes.GET("", handler.GetAllProducts)
 	}
