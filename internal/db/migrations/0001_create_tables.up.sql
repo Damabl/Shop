@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS products (
                                         quantity INTEGER NOT NULL
 );
 
+
 CREATE TABLE IF NOT EXISTS carts (
                                      id SERIAL PRIMARY KEY,
                                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

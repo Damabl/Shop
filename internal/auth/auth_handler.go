@@ -31,7 +31,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 	input.Password = string(hashedPassword)
 
-	// Используем сервис для создания пользователя
 	err = h.UserService.RegisterUser(&input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})
@@ -42,13 +41,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	// 1. Определяем структуру только для входа
 	var input struct {
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required,min=3"`
 	}
 
-	// 2. Проверяем валидацию входных данных
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format"})
 		return
@@ -64,7 +61,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	log.Println("Hashed password from DB:", user.Password)
 	log.Println("Input password:", input.Password)
 
-	// 4. Проверяем существование пользователя
 	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 		return
@@ -76,7 +72,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		log.Println("✅ Manual test: password matched")
 	}
 
-	// 6. Генерируем токен
 	token, err := GenerateJWT(user.ID, user.Role)
 	if err != nil {
 		log.Printf("Token generation failed: %v", err)
@@ -84,7 +79,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// 7. Возвращаем успешный ответ
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"user": gin.H{

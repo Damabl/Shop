@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var jwtKey = []byte(os.Getenv("SECRET_KEY")) // Храни в .env
+var jwtKey = []byte(os.Getenv("SECRET_KEY"))
 
 type Claims struct {
 	UserID uint
