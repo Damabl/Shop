@@ -15,7 +15,6 @@ func NewCartHandler(service *services.CartService) *CartHandler {
 	return &CartHandler{Service: service}
 }
 
-// Получение корзины пользователя
 func (h *CartHandler) GetCart(ctx *gin.Context) {
 	userID, _ := strconv.Atoi(ctx.Param("user_id"))
 	cart, err := h.Service.GetCart(uint(userID))
@@ -26,7 +25,6 @@ func (h *CartHandler) GetCart(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cart)
 }
 
-// Добавление товара в корзину
 func (h *CartHandler) AddToCart(ctx *gin.Context) {
 	userID, _ := strconv.Atoi(ctx.Param("user_id"))
 	productID, _ := strconv.Atoi(ctx.Param("product_id"))
@@ -40,7 +38,6 @@ func (h *CartHandler) AddToCart(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Product added to cart"})
 }
 
-// Обновление количества товара
 func (h *CartHandler) UpdateCartItem(ctx *gin.Context) {
 	cartItemID, _ := strconv.Atoi(ctx.Param("cart_item_id"))
 	quantity, _ := strconv.Atoi(ctx.Query("quantity"))
@@ -53,7 +50,6 @@ func (h *CartHandler) UpdateCartItem(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Cart item updated"})
 }
 
-// Удаление товара из корзины
 func (h *CartHandler) RemoveFromCart(ctx *gin.Context) {
 	cartItemID, _ := strconv.Atoi(ctx.Param("cart_item_id"))
 
@@ -65,7 +61,6 @@ func (h *CartHandler) RemoveFromCart(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Item removed from cart"})
 }
 
-// Очистка корзины
 func (h *CartHandler) ClearCart(ctx *gin.Context) {
 	userID, _ := strconv.Atoi(ctx.Param("user_id"))
 

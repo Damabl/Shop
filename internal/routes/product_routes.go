@@ -2,17 +2,24 @@ package routes
 
 import (
 	"Shop/internal/auth"
+	"Shop/internal/cloud"
 	"Shop/internal/handlers"
 	"Shop/internal/repositories"
 	"Shop/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"log"
 )
 
 func SetupProductRoutes(router *gin.Engine, db *gorm.DB) {
 	repo := repositories.NewProductRepository(db)
 	service := services.NewProductService(repo)
-	handler := handlers.NewProductHandler(service)
+	cloudinaryService, err := cloud.NewCloudinaryService()
+	if err != nil {
+		log.Fatalf("Cloudinary init failed: %v", err)
+	}
+	handler := handlers.NewProductHandler(service, cloudinaryService)
+
 	routes := router.Group("/products")
 	{
 		routes.Use(auth.AuthMiddleware())

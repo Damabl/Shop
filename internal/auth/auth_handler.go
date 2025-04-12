@@ -51,15 +51,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// 3. Ищем пользователя
 	user, err := h.UserService.Repo.FindUserByEmail(input.Email)
 	if err != nil {
 		log.Printf("Login error for %s: %v", input.Email, err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	log.Println("Hashed password from DB:", user.Password)
-	log.Println("Input password:", input.Password)
 
 	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
