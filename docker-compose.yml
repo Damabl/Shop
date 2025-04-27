@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:17.4-alpine
-    container_name: go-postgres
+    container_name: shop-postgres
     restart: always
     environment:
       POSTGRES_USER: myuser
@@ -13,6 +13,25 @@ services:
       - "5444:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  my-service:
+    depends_on:
+      - postgres
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 'my-service-iso'
+    container_name: 'my-service-container'
+    environment:
+      APP_POSTGRES_URL: ${APP_POSTGRES_DOCKER_URL}
+      DATABASE_NAME: ${DB_HOST}
+      CLOUDINARY_URL: ${CLOUDINARY_URL}
+      APP_PORT: ${APP_PORT}
+      SECRET_KEY: ${SECRET_KEY}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./internal/db/migrations:/app/internal/db/migrations
 
 volumes:
   postgres_data:

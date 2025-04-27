@@ -16,7 +16,7 @@ func NewProductRepository(db *gorm.DB) *ProductRepository {
 func (repo *ProductRepository) CreateProduct(product *models.Product) error {
 	return repo.Db.Create(product).Error
 }
-func (repo *ProductRepository) UpdateProduct(product *models.Product) error {
+func (repo *ProductRepository) UpdateProduct(product **models.Product) error {
 	return repo.Db.Save(product).Error
 }
 func (repo *ProductRepository) DeleteProduct(product *models.Product) error {

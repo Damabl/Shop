@@ -1,6 +1,8 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Product struct {
 	gorm.Model
@@ -16,5 +18,5 @@ type Product struct {
 	Gender      string  `json:"gender" form:"gender"`
 	Season      string  `json:"season" form:"season"`
 	Discount    float64 `json:"discount" form:"discount"`
-	Image       string  `json:"image" form:"image"`
+	Images      []Image `json:"images"`
 }

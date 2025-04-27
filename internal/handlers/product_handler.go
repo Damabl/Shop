@@ -4,7 +4,10 @@ import (
 	"Shop/internal/cloud"
 	"Shop/internal/models"
 	"Shop/internal/services"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 )
@@ -12,10 +15,11 @@ import (
 type ProductHandler struct {
 	Service           *services.ProductService
 	CloudinaryService *cloud.CloudinaryService
+	ImageService      *services.ImageService
 }
 
-func NewProductHandler(service *services.ProductService, cloudinary *cloud.CloudinaryService) *ProductHandler {
-	return &ProductHandler{Service: service, CloudinaryService: cloudinary}
+func NewProductHandler(service *services.ProductService, cloudinary *cloud.CloudinaryService, image *services.ImageService) *ProductHandler {
+	return &ProductHandler{Service: service, CloudinaryService: cloudinary, ImageService: image}
 }
 
 func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
@@ -26,9 +30,36 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 		return
 	}
 
+	if err := h.Service.CreateProduct(product); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, product)
+}
+
+func (h *ProductHandler) ImageUpload(ctx *gin.Context) {
 	fileHeader, err := ctx.FormFile("image")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Image is required"})
+		return
+	}
+
+	productIdStr, ok := ctx.GetPostForm("productId")
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Product ID is required"})
+		return
+	}
+
+	productIdUint, err := strconv.ParseUint(productIdStr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Product ID"})
+		return
+	}
+
+	product, err := h.Service.GetProductByID(uint(productIdUint))
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Product not found: %v", err)})
 		return
 	}
 
@@ -37,27 +68,26 @@ func (h *ProductHandler) CreateProduct(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot open image"})
 		return
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		if err := file.Close(); err != nil {
+			log.Println("Error closing file:", err)
+		}
+	}(file)
 
-	imageURL, err := h.CloudinaryService.UploadImage(file, product.Name)
+	image, _, err := h.ImageService.UploadImage(file, fileHeader, product.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload image"})
 		return
 	}
-	product.Image = imageURL
-
-	err = h.Service.CreateProduct(product)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	product.Images = append(product.Images, *image)
+	if err := h.Service.UpdateProduct(product); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to update product: %v", err)})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, product)
+	return
 }
 
-// func (h *ProductHandler) CreateImage(ctx *gin.Context) {
-//
-// }
 func (h *ProductHandler) GetProductByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -101,7 +131,7 @@ func (h *ProductHandler) UpdateProduct(ctx *gin.Context) {
 	}
 
 	product.ID = uint(id)
-	err = h.Service.UpdateProduct(product)
+	err = h.Service.UpdateProduct(&product)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product"})
 		return
