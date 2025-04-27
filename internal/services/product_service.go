@@ -8,11 +8,12 @@ import (
 )
 
 type ProductService struct {
-	Repo *repositories.ProductRepository
+	Repo         *repositories.ProductRepository
+	ImageService *ImageService
 }
 
-func NewProductService(repo *repositories.ProductRepository) *ProductService {
-	return &ProductService{Repo: repo}
+func NewProductService(repo *repositories.ProductRepository, service *ImageService) *ProductService {
+	return &ProductService{Repo: repo, ImageService: service}
 }
 
 func (s *ProductService) CreateProduct(product models.Product) error {
@@ -23,19 +24,24 @@ func (s *ProductService) CreateProduct(product models.Product) error {
 	if existingProduct != nil {
 		return errors.New("product already exists")
 	}
-
 	return s.Repo.CreateProduct(&product)
 }
+
 func (s *ProductService) GetProductByName(name string) (*models.Product, error) {
 	return s.Repo.GetProductByName(name)
 }
-func (s *ProductService) UpdateProduct(product models.Product) error {
+func (s *ProductService) UpdateProduct(product *models.Product) error {
 	return s.Repo.UpdateProduct(&product)
 }
 
 func (s *ProductService) DeleteProduct(productID uint) error {
 	product, err := s.Repo.GetProductById(productID)
 	if err != nil {
+		return err
+	}
+	errImage := s.ImageService.DeleteImage(product.ID)
+	if errImage != nil {
+
 		return err
 	}
 	return s.Repo.DeleteProduct(product)

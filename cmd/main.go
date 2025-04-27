@@ -4,6 +4,7 @@ import (
 	"Shop/internal/db"
 	"Shop/internal/routes"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"net/http"
 	"os"
 )
